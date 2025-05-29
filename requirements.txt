@@ -1,0 +1,7 @@
+# Core Frameworks
+fastapi
+streamlit
+
+# Audio
+streamlit-audiorec
+python-dotenv
