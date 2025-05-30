@@ -11,9 +11,70 @@ TRANSCRIBE_URL = f"{FASTAPI_HOST}/transcribe/"
 MCP_URL        = f"{FASTAPI_HOST}/mcp/"
 ANSWER_URL     = f"{FASTAPI_HOST}/answer/"
 
-st.set_page_config(page_title="V.E.R.O.N.I.C.A", page_icon="🎙️", layout="centered")
-st.title("🎙️ V.E.R.O.N.I.C.A")
-st.caption("Your Voice-Based Financial Assistant")
+st.set_page_config(page_title="Market Analyst AI", page_icon="🎙️", layout="centered")
+st.title("Market Analyst AI")
+st.markdown("Powered by Voice, LLM's, RAG, and Financial APIs")
+
+# ─────────────── Quick-start helper text (place after st.caption) ─────────────── #
+st.markdown(
+    """
+    <div style="
+        border:1px solid #e7e7e7;
+        border-radius:6px;
+        padding:14px 16px;
+        font-size:16px;
+        line-height:1.45;">
+        
+      <p style="margin:0 0 8px 0;font-weight:600;">Quick guide</p>
+      
+      <ol style="margin:0 0 8px 18px;padding:0;">
+        <li>Click the mic</strong> &nbsp;to start recording</li>
+        <li>Ask any market-related question and hit stop</li>
+        <li>We’ll transcribe your query and detect its intent</li>
+        <li>Read the latest news about that stock while data loads</li>
+        <li>Read or listen to the answer when it appears</li>
+      </ol>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
+
+st.markdown("##### Try with Sample Prompts")
+
+cols = st.columns(2)
+
+prompt_map = {
+    "What is Nike's stock price today, and should I invest in it?": "prompt_1.wav",
+    "Summarize Apple's earnings and news highlights.": "prompt_2.wav",
+    "What's the sentiment around Tesla this month?": "prompt_3.wav",
+    "Compare Samsung and AMD for the past 3 months.": "prompt_4.wav",
+    "Show Google's risk analysis and key shareholders.": "prompt_5.wav",
+    "What is Microsoft's option chain insight?": "prompt_6.wav",
+}
+
+custom_button_css = """
+<style>
+div.stButton > button {
+    width: 100%;
+    height: 60px;
+    border-radius: 6px;
+    font-size: 15px;
+}
+</style>
+"""
+
+st.markdown(custom_button_css, unsafe_allow_html=True)
+
+for i, (label, file_name) in enumerate(prompt_map.items()):
+    col = cols[i % 2]
+    with col:
+        if st.button(label):
+            file_path = os.path.join("streamlit_app", "prompts", file_name)
+            with open(file_path, "rb") as f:
+                audio_bytes = f.read()
+            st.session_state["audio_bytes"] = audio_bytes
+            st.toast("Scroll down to view the results")
+
 
 def autoplay_audio(path: str):
     with open(path, "rb") as f:
@@ -41,10 +102,20 @@ def headline_html(ticker: str, art: dict) -> str:
     """
 
 st.markdown("### Record Your Query")
-audio_bytes = st_audiorec()
 
-if audio_bytes:
-    st.markdown("Recording complete!")
+audio_bytes = None
+transcript = None
+intent = None
+
+# 🔁 Mic recording (separate)
+audio_from_mic = st_audiorec()
+if audio_from_mic:
+    st.session_state["audio_bytes"] = audio_from_mic
+    st.toast("Scroll down to view the results 🔽")
+
+# 🧠 Transcribe and classify (only once)
+if "audio_bytes" in st.session_state:
+    audio_bytes = st.session_state.pop("audio_bytes")
 
     st.markdown("### Transcribe & Understand Your Query")
     with st.spinner("Transcribing and classifying intent…"):
@@ -52,13 +123,16 @@ if audio_bytes:
             TRANSCRIBE_URL,
             files={"file": ("audio.wav", audio_bytes, "audio/wav")},
         )
+
     if tr.status_code != 200:
-        st.error("Failed to get transcript and intent."); st.stop()
+        st.error("Failed to get transcript and intent.")
+        st.stop()
 
     data        = tr.json()
     transcript  = data.get("transcript", "")
     intent      = data.get("intent", {})
-    ticker_name = intent.get("ticker", "This stock").upper()
+    ticker_list   = intent.get("tickers", [])
+    ticker_name   = (ticker_list[0] if ticker_list else intent.get("ticker", "This stock")).upper()
 
     tabs = st.tabs(["Transcript", "Intent"])
     with tabs[0]:
@@ -130,4 +204,4 @@ if audio_bytes:
     else:
         st.warning("No audio response available.")
 
-    st.toast("Response generated — scroll down to view it")
+    st.toast("Response generated, scroll down to view it")
