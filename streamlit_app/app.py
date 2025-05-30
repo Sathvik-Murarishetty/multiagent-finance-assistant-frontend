@@ -34,47 +34,24 @@ st.markdown(
         <li>Read the latest news about that stock while data loads</li>
         <li>Read or listen to the answer when it appears</li>
       </ol>
+      
+      <p style="margin:0 0 6px 0;">Try asking:</p>
+            <div style="
+                display:grid;
+                grid-template-columns:repeat(2, 1fr);
+                gap:6px 10px;
+                margin-top:4px;">
+                <code>“What is Nike's stock price today, and should I invest in it?”</code>
+                <code>“Summarize Apple's earnings and news highlights.”</code>
+                <code>“What's the sentiment around Tesla this month?”</code>
+                <code>“Compare Nvidia and AMD for the past 3 months.”</code>
+                <code>“Show Google's risk analysis and key shareholders.”</code>
+                <code>“What is Microsoft's option chain insight?”</code>
+            </div>
     </div>
     """,
     unsafe_allow_html=True,
 )
-
-st.markdown("##### Or click on one of the Sample Prompts to try out the Model")
-
-cols = st.columns(2)
-
-prompt_map = {
-    "What is Nike's stock price today, and should I invest in it?": "prompt_1.wav",
-    "Summarize Apple's earnings and news highlights.": "prompt_2.wav",
-    "What's the sentiment around Tesla this month?": "prompt_3.wav",
-    "Compare Sony and AMD for the past 3 months.": "prompt_4.wav",
-    "Show Google's risk analysis and key shareholders.": "prompt_5.wav",
-    "What is Microsoft's option chain insight?": "prompt_6.wav",
-}
-
-custom_button_css = """
-<style>
-div.stButton > button {
-    width: 100%;
-    height: 60px;
-    border-radius: 6px;
-    font-size: 15px;
-}
-</style>
-"""
-
-st.markdown(custom_button_css, unsafe_allow_html=True)
-
-for i, (label, file_name) in enumerate(prompt_map.items()):
-    col = cols[i % 2]
-    with col:
-        if st.button(label):
-            file_path = os.path.join("streamlit_app", "prompts", file_name)
-            with open(file_path, "rb") as f:
-                audio_bytes = f.read()
-            st.session_state["audio_bytes"] = audio_bytes
-            st.toast("Scroll down to view the results")
-
 
 def autoplay_audio(path: str):
     with open(path, "rb") as f:
@@ -102,20 +79,10 @@ def headline_html(ticker: str, art: dict) -> str:
     """
 
 st.markdown("### Record Your Query")
+audio_bytes = st_audiorec()
 
-audio_bytes = None
-transcript = None
-intent = None
-
-# 🔁 Mic recording (separate)
-audio_from_mic = st_audiorec()
-if audio_from_mic:
-    st.session_state["audio_bytes"] = audio_from_mic
-    st.toast("Scroll down to view the results 🔽")
-
-# 🧠 Transcribe and classify (only once)
-if "audio_bytes" in st.session_state:
-    audio_bytes = st.session_state.pop("audio_bytes")
+if audio_bytes:
+    st.markdown("Recording complete!")
 
     st.markdown("### Transcribe & Understand Your Query")
     with st.spinner("Transcribing and classifying intent…"):
@@ -123,10 +90,8 @@ if "audio_bytes" in st.session_state:
             TRANSCRIBE_URL,
             files={"file": ("audio.wav", audio_bytes, "audio/wav")},
         )
-
     if tr.status_code != 200:
-        st.error("Failed to get transcript and intent.")
-        st.stop()
+        st.error("Failed to get transcript and intent."); st.stop()
 
     data        = tr.json()
     transcript  = data.get("transcript", "")
