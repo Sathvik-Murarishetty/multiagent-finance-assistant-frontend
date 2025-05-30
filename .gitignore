@@ -7,9 +7,6 @@ ENV/
 env/
 .venv/
 
-*.mp3
-*.wav
-
 .env
 
 
