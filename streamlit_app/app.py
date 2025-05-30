@@ -39,7 +39,7 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("##### Try with Sample Prompts")
+st.markdown("##### Or click on one of the Sample Prompts to try out the Model")
 
 cols = st.columns(2)
 
