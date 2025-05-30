@@ -47,7 +47,7 @@ prompt_map = {
     "What is Nike's stock price today, and should I invest in it?": "prompt_1.wav",
     "Summarize Apple's earnings and news highlights.": "prompt_2.wav",
     "What's the sentiment around Tesla this month?": "prompt_3.wav",
-    "Compare Samsung and AMD for the past 3 months.": "prompt_4.wav",
+    "Compare Sony and AMD for the past 3 months.": "prompt_4.wav",
     "Show Google's risk analysis and key shareholders.": "prompt_5.wav",
     "What is Microsoft's option chain insight?": "prompt_6.wav",
 }
