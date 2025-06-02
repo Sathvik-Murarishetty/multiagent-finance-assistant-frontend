@@ -14,6 +14,7 @@ ANSWER_URL     = f"{FASTAPI_HOST}/answer/"
 st.set_page_config(page_title="Market Analyst AI", page_icon="🎙️", layout="centered")
 st.title("Market Analyst AI")
 st.markdown("Powered by Voice, LLM's, RAG, and Financial APIs")
+st.markdown("⚠️ Note on Performance: The Model usually responds in under 5 seconds. However, due to free-tier cloud limitations (CPU & memory), response time may increase slightly. Hang on tight! It’s still worth it.")
 
 # ─────────────── Quick-start helper text (place after st.caption) ─────────────── #
 st.markdown(
